@@ -60,5 +60,16 @@ export default {
   axios: {},
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {}
+  build: {
+    extend (config, ctx) {
+
+      config.module.rules.push({
+        enforce: 'pre',
+        test: /\.glsl$/,
+        loader: 'raw-loader',
+        exclude: /(node_modules)/
+      });
+
+    }
+  }
 }
