@@ -11,6 +11,7 @@ const stats = new Stats()
 let fluid = null
 let stage = null
 let ctx = null
+let isReadyToDraw = false
 function init() {
   stage = new Stage(width, height, draw)
   ctx = stage.getNewCtx()
@@ -25,8 +26,15 @@ function init() {
   stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
   document.body.appendChild(stage.app.view)
   document.body.appendChild(stats.dom)
+  stage.app.loader.add('flowerTop', 'images/pic.jpg')
+  stage.app.loader.load((loader, resources) => {
+    const texture = resources.flowerTop.texture
+    fluid.init(texture)
+    isReadyToDraw = true
+  })
 }
 function draw(delta) {
+  if (!isReadyToDraw) return
   stats.begin()
   ctx.clear()
   fluid.draw(ctx)
