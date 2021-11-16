@@ -738,6 +738,7 @@ export default function (canvas) {
   function drawDisplay(target) {
     displayMaterial.bind()
     gl.uniform1i(displayMaterial.uniforms.uTexture, dye.read.attach(0))
+    // gl.uniform1i(divergenceProgram.uniforms.uVelocity, dye.read.attach(0))
     // if (config.BLOOM) {
     //   gl.uniform1i(displayMaterial.uniforms.uBloom, bloom.attach(1))
     //   gl.uniform1i(
