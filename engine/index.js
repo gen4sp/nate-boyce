@@ -15,7 +15,7 @@ let isReadyToDraw = false
 function init() {
   stage = new Stage(width, height, draw)
   ctx = stage.getNewCtx()
-  fluid = new Fluid(width, height, ctx)
+  fluid = new Fluid(width, height, ctx, stage.app.renderer.context.extensions)
   // fluid.init()
   //   stage.renderer.plugins.interaction.on('pointerdown', onPointerDown);
   //   stage.app.stage.addEventListener('click', (e) => onPointerDown(e))

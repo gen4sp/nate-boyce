@@ -9,6 +9,7 @@ export default class Stage {
       backgroundColor: 0x000000,
       resolution: 1
     })
+    console.log('aaa', this.app)
 
     // eslint-disable-next-line new-cap
     // const renderer = new PIXI.autoDetectRenderer(width, height)
