@@ -1695,7 +1695,7 @@ export default function (canvas) {
   }
 
   function scaleByPixelRatio(input) {
-    const pixelRatio = window.devicePixelRatio || 1
+    const pixelRatio = 1 // window.devicePixelRatio || 1
     return Math.floor(input * pixelRatio)
   }
 

@@ -9,15 +9,8 @@ export default class Stage {
       backgroundColor: 0x000000,
       resolution: 1
     })
-    console.log('aaa', this.app)
 
-    // eslint-disable-next-line new-cap
-    // const renderer = new PIXI.autoDetectRenderer(width, height)
-
-    // document.body.appendChild(renderer.view)
     this.app.stage.interactive = true
-
-    // console.log(simpleShader)
     this.app.stage.hitArea = this.app.renderer.screen
     this.app.ticker.add(drawLoop)
   }
@@ -26,5 +19,10 @@ export default class Stage {
     const graphics = new PIXI.Graphics()
     this.app.stage.addChild(graphics)
     return graphics
+  }
+
+  getGraphicsCanvas() {
+    const extract = this.app.renderer.plugins.extract
+    return extract.canvas()
   }
 }
