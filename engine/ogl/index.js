@@ -14,29 +14,30 @@ import {
   // NormalProgram,
   Post
 } from 'ogl-nuxt'
-const tvertex = /* glsl */ `
-precision highp float;
-attribute vec4 aVertexPosition;
-attribute vec2 aTextureCoord;
+// const tvertex = /* glsl */ `
+// precision highp float;
+// attribute vec4 aVertexPosition;
+// attribute vec2 aTextureCoord;
 
-uniform mat4 uModelViewMatrix;
-uniform mat4 uProjectionMatrix;
+// uniform mat4 uModelViewMatrix;
+// uniform mat4 uProjectionMatrix;
 
-varying highp vec2 vTextureCoord;
+// varying highp vec2 vTextureCoord;
 
-void main(void) {
-  gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-  vTextureCoord = aTextureCoord;
-} `
+// void main(void) {
+//   gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+//   vTextureCoord = aTextureCoord;
+// } `
 
 const tfragment = /* glsl */ `
-precision highp float;
-vec2 vTextureCoord;
+precision mediump float;
+precision mediump sampler2D;
+varying highp vec2 vUv;
 
 uniform sampler2D uSampler;
 
 void main(void) {
-  gl_FragColor = texture2D(uSampler, vTextureCoord);
+  gl_FragColor = texture2D(uSampler, vUv);
 }
             `
 const fragment = /* glsl */ `
@@ -50,7 +51,8 @@ const fragment = /* glsl */ `
         vec2 uv = vUv - fluid.rg * 0.0002;
         gl_FragColor = mix( texture2D(tMap, uv), vec4(fluid * 0.1 + 0.5, 1), step(0.5, vUv.x) ) ;
         // Oscillate between fluid values and the distorted scene
-        // gl_FragColor = mix(texture2D(tMap, uv), vec4(fluid * 0.1 + 0.5, 1), smoothstep(0.0, 0.7, sin(uTime)));
+         //gl_FragColor = mix(texture2D(tMap, uv), vec4(fluid * 0.1 + 0.5, 1), smoothstep(0.0, 0.7, sin(uTime)));
+         //gl_FragColor = texture2D(tMap, uv);
     }
 `
 
@@ -364,9 +366,9 @@ function init() {
   const dyeRes = 512
 
   // Main inputs to control look and feel of fluid
-  const iterations = 3
-  const densityDissipation = 0.97
-  const velocityDissipation = 0.98
+  const iterations = 1
+  const densityDissipation = 0.99
+  const velocityDissipation = 0.99
   const pressureDissipation = 0.8
   const curlStrength = 20
   const radius = 0.2
@@ -674,22 +676,15 @@ function init() {
   // }
 
   const p11 = new Program(gl, {
-    vertex: tvertex,
+    vertex: baseVertex,
     fragment: tfragment,
     uniforms: {
-      tMap: { value: baseTexture }
+      uSampler: { value: baseTexture }
     }
-    // attribLocations: {
-    //   vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-    //   textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
-    // },
   })
 
   const mesh = new Mesh(gl, {
-    geometry: new Triangle(gl, {
-      aVertexPosition: gl.getAttribLocation(p11.program, 'aVertexPosition'),
-      textureCoord: gl.getAttribLocation(p11.program, 'aTextureCoord')
-    }),
+    geometry: new Triangle(gl),
     program: p11
   })
 
