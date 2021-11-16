@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-expressions */
+
 export default function (canvas) {
   //   const canvas = document.getElementsByTagName('canvas')[0]
   resizeCanvas()
@@ -14,12 +15,12 @@ export default function (canvas) {
     CURL: 30,
     SPLAT_RADIUS: 0.25,
     SPLAT_FORCE: 6000,
-    SHADING: true,
-    COLORFUL: true,
+    SHADING: false,
+    COLORFUL: false,
     COLOR_UPDATE_SPEED: 10,
     PAUSED: false,
     BACK_COLOR: { r: 0, g: 0, b: 0 },
-    TRANSPARENT: false,
+    TRANSPARENT: true,
     BLOOM: false,
     BLOOM_ITERATIONS: 8,
     BLOOM_RESOLUTION: 256,
@@ -275,47 +276,6 @@ export default function (canvas) {
     `
   )
 
-  const blurVertexShader = compileShader(
-    gl.VERTEX_SHADER,
-    `
-        precision highp float;
-    
-        attribute vec2 aPosition;
-        varying vec2 vUv;
-        varying vec2 vL;
-        varying vec2 vR;
-        uniform vec2 texelSize;
-    
-        void main () {
-            vUv = aPosition * 0.5 + 0.5;
-            float offset = 1.33333333;
-            vL = vUv - texelSize * offset;
-            vR = vUv + texelSize * offset;
-            gl_Position = vec4(aPosition, 0.0, 1.0);
-        }
-    `
-  )
-
-  const blurShader = compileShader(
-    gl.FRAGMENT_SHADER,
-    `
-        precision mediump float;
-        precision mediump sampler2D;
-    
-        varying vec2 vUv;
-        varying vec2 vL;
-        varying vec2 vR;
-        uniform sampler2D uTexture;
-    
-        void main () {
-            vec4 sum = texture2D(uTexture, vUv) * 0.29411764;
-            sum += texture2D(uTexture, vL) * 0.35294117;
-            sum += texture2D(uTexture, vR) * 0.35294117;
-            gl_FragColor = sum;
-        }
-    `
-  )
-
   const copyShader = compileShader(
     gl.FRAGMENT_SHADER,
     `
@@ -445,133 +405,6 @@ export default function (canvas) {
             gl_FragColor = vec4(c, a);
         }
     `
-
-  const bloomPrefilterShader = compileShader(
-    gl.FRAGMENT_SHADER,
-    `
-        precision mediump float;
-        precision mediump sampler2D;
-    
-        varying vec2 vUv;
-        uniform sampler2D uTexture;
-        uniform vec3 curve;
-        uniform float threshold;
-    
-        void main () {
-            vec3 c = texture2D(uTexture, vUv).rgb;
-            float br = max(c.r, max(c.g, c.b));
-            float rq = clamp(br - curve.x, 0.0, curve.y);
-            rq = curve.z * rq * rq;
-            c *= max(rq, br - threshold) / max(br, 0.0001);
-            gl_FragColor = vec4(c, 0.0);
-        }
-    `
-  )
-
-  const bloomBlurShader = compileShader(
-    gl.FRAGMENT_SHADER,
-    `
-        precision mediump float;
-        precision mediump sampler2D;
-    
-        varying vec2 vL;
-        varying vec2 vR;
-        varying vec2 vT;
-        varying vec2 vB;
-        uniform sampler2D uTexture;
-    
-        void main () {
-            vec4 sum = vec4(0.0);
-            sum += texture2D(uTexture, vL);
-            sum += texture2D(uTexture, vR);
-            sum += texture2D(uTexture, vT);
-            sum += texture2D(uTexture, vB);
-            sum *= 0.25;
-            gl_FragColor = sum;
-        }
-    `
-  )
-
-  const bloomFinalShader = compileShader(
-    gl.FRAGMENT_SHADER,
-    `
-        precision mediump float;
-        precision mediump sampler2D;
-    
-        varying vec2 vL;
-        varying vec2 vR;
-        varying vec2 vT;
-        varying vec2 vB;
-        uniform sampler2D uTexture;
-        uniform float intensity;
-    
-        void main () {
-            vec4 sum = vec4(0.0);
-            sum += texture2D(uTexture, vL);
-            sum += texture2D(uTexture, vR);
-            sum += texture2D(uTexture, vT);
-            sum += texture2D(uTexture, vB);
-            sum *= 0.25;
-            gl_FragColor = sum * intensity;
-        }
-    `
-  )
-
-  const sunraysMaskShader = compileShader(
-    gl.FRAGMENT_SHADER,
-    `
-        precision highp float;
-        precision highp sampler2D;
-    
-        varying vec2 vUv;
-        uniform sampler2D uTexture;
-    
-        void main () {
-            vec4 c = texture2D(uTexture, vUv);
-            float br = max(c.r, max(c.g, c.b));
-            c.a = 1.0 - min(max(br * 20.0, 0.0), 0.8);
-            gl_FragColor = c;
-        }
-    `
-  )
-
-  const sunraysShader = compileShader(
-    gl.FRAGMENT_SHADER,
-    `
-        precision highp float;
-        precision highp sampler2D;
-    
-        varying vec2 vUv;
-        uniform sampler2D uTexture;
-        uniform float weight;
-    
-        #define ITERATIONS 16
-    
-        void main () {
-            float Density = 0.3;
-            float Decay = 0.95;
-            float Exposure = 0.7;
-    
-            vec2 coord = vUv;
-            vec2 dir = vUv - 0.5;
-    
-            dir *= 1.0 / float(ITERATIONS) * Density;
-            float illuminationDecay = 1.0;
-    
-            float color = texture2D(uTexture, vUv).a;
-    
-            for (int i = 0; i < ITERATIONS; i++)
-            {
-                coord -= dir;
-                float col = texture2D(uTexture, coord).a;
-                color += col * illuminationDecay * weight;
-                illuminationDecay *= Decay;
-            }
-    
-            gl_FragColor = vec4(color * Exposure, 0.0, 0.0, 1.0);
-        }
-    `
-  )
 
   const splatShader = compileShader(
     gl.FRAGMENT_SHADER,
@@ -821,25 +654,24 @@ export default function (canvas) {
   let curl
   let pressure
   let bloom
-  const bloomFramebuffers = []
   let sunrays
-  let sunraysTemp
+  // let sunraysTemp
 
   const ditheringTexture = createTextureAsync('LDR_LLL1_0.png')
 
-  const blurProgram = new Program(blurVertexShader, blurShader)
+  // const blurProgram = new Program(blurVertexShader, blurShader)
   const copyProgram = new Program(baseVertexShader, copyShader)
   const clearProgram = new Program(baseVertexShader, clearShader)
   const colorProgram = new Program(baseVertexShader, colorShader)
   const checkerboardProgram = new Program(baseVertexShader, checkerboardShader)
-  const bloomPrefilterProgram = new Program(
-    baseVertexShader,
-    bloomPrefilterShader
-  )
-  const bloomBlurProgram = new Program(baseVertexShader, bloomBlurShader)
-  const bloomFinalProgram = new Program(baseVertexShader, bloomFinalShader)
-  const sunraysMaskProgram = new Program(baseVertexShader, sunraysMaskShader)
-  const sunraysProgram = new Program(baseVertexShader, sunraysShader)
+  // const bloomPrefilterProgram = new Program(
+  //   baseVertexShader,
+  //   bloomPrefilterShader
+  // )
+  // const bloomBlurProgram = new Program(baseVertexShader, bloomBlurShader)
+  // const bloomFinalProgram = new Program(baseVertexShader, bloomFinalShader)
+  // const sunraysMaskProgram = new Program(baseVertexShader, sunraysMaskShader)
+  // const sunraysProgram = new Program(baseVertexShader, sunraysShader)
   const splatProgram = new Program(baseVertexShader, splatShader)
   const advectionProgram = new Program(baseVertexShader, advectionShader)
   const divergenceProgram = new Program(baseVertexShader, divergenceShader)
@@ -928,69 +760,6 @@ export default function (canvas) {
       r.format,
       texType,
       gl.NEAREST
-    )
-
-    initBloomFramebuffers()
-    initSunraysFramebuffers()
-  }
-
-  function initBloomFramebuffers() {
-    const res = getResolution(config.BLOOM_RESOLUTION)
-
-    const texType = ext.halfFloatTexType
-    const rgba = ext.formatRGBA
-    const filtering = ext.supportLinearFiltering ? gl.LINEAR : gl.NEAREST
-
-    bloom = createFBO(
-      res.width,
-      res.height,
-      rgba.internalFormat,
-      rgba.format,
-      texType,
-      filtering
-    )
-
-    bloomFramebuffers.length = 0
-    for (let i = 0; i < config.BLOOM_ITERATIONS; i++) {
-      const width = res.width >> (i + 1)
-      const height = res.height >> (i + 1)
-
-      if (width < 2 || height < 2) break
-
-      const fbo = createFBO(
-        width,
-        height,
-        rgba.internalFormat,
-        rgba.format,
-        texType,
-        filtering
-      )
-      bloomFramebuffers.push(fbo)
-    }
-  }
-
-  function initSunraysFramebuffers() {
-    const res = getResolution(config.SUNRAYS_RESOLUTION)
-
-    const texType = ext.halfFloatTexType
-    const r = ext.formatR
-    const filtering = ext.supportLinearFiltering ? gl.LINEAR : gl.NEAREST
-
-    sunrays = createFBO(
-      res.width,
-      res.height,
-      r.internalFormat,
-      r.format,
-      texType,
-      filtering
-    )
-    sunraysTemp = createFBO(
-      res.width,
-      res.height,
-      r.internalFormat,
-      r.format,
-      texType,
-      filtering
     )
   }
 
@@ -1310,11 +1079,11 @@ export default function (canvas) {
   }
 
   function render(target) {
-    if (config.BLOOM) applyBloom(dye.read, bloom)
-    if (config.SUNRAYS) {
-      applySunrays(dye.read, dye.write, sunrays)
-      blur(sunrays, sunraysTemp, 1)
-    }
+    // if (config.BLOOM) applyBloom(dye.read, bloom)
+    // if (config.SUNRAYS) {
+    //   applySunrays(dye.read, dye.write, sunrays)
+    //   blur(sunrays, sunraysTemp, 1)
+    // }
 
     if (target == null || !config.TRANSPARENT) {
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
@@ -1368,91 +1137,6 @@ export default function (canvas) {
     if (config.SUNRAYS)
       gl.uniform1i(displayMaterial.uniforms.uSunrays, sunrays.attach(3))
     blit(target)
-  }
-
-  function applyBloom(source, destination) {
-    if (bloomFramebuffers.length < 2) return
-
-    let last = destination
-
-    gl.disable(gl.BLEND)
-    bloomPrefilterProgram.bind()
-    const knee = config.BLOOM_THRESHOLD * config.BLOOM_SOFT_KNEE + 0.0001
-    const curve0 = config.BLOOM_THRESHOLD - knee
-    const curve1 = knee * 2
-    const curve2 = 0.25 / knee
-    gl.uniform3f(bloomPrefilterProgram.uniforms.curve, curve0, curve1, curve2)
-    gl.uniform1f(
-      bloomPrefilterProgram.uniforms.threshold,
-      config.BLOOM_THRESHOLD
-    )
-    gl.uniform1i(bloomPrefilterProgram.uniforms.uTexture, source.attach(0))
-    blit(last)
-
-    bloomBlurProgram.bind()
-    for (let i = 0; i < bloomFramebuffers.length; i++) {
-      const dest = bloomFramebuffers[i]
-      gl.uniform2f(
-        bloomBlurProgram.uniforms.texelSize,
-        last.texelSizeX,
-        last.texelSizeY
-      )
-      gl.uniform1i(bloomBlurProgram.uniforms.uTexture, last.attach(0))
-      blit(dest)
-      last = dest
-    }
-
-    gl.blendFunc(gl.ONE, gl.ONE)
-    gl.enable(gl.BLEND)
-
-    for (let i = bloomFramebuffers.length - 2; i >= 0; i--) {
-      const baseTex = bloomFramebuffers[i]
-      gl.uniform2f(
-        bloomBlurProgram.uniforms.texelSize,
-        last.texelSizeX,
-        last.texelSizeY
-      )
-      gl.uniform1i(bloomBlurProgram.uniforms.uTexture, last.attach(0))
-      gl.viewport(0, 0, baseTex.width, baseTex.height)
-      blit(baseTex)
-      last = baseTex
-    }
-
-    gl.disable(gl.BLEND)
-    bloomFinalProgram.bind()
-    gl.uniform2f(
-      bloomFinalProgram.uniforms.texelSize,
-      last.texelSizeX,
-      last.texelSizeY
-    )
-    gl.uniform1i(bloomFinalProgram.uniforms.uTexture, last.attach(0))
-    gl.uniform1f(bloomFinalProgram.uniforms.intensity, config.BLOOM_INTENSITY)
-    blit(destination)
-  }
-
-  function applySunrays(source, mask, destination) {
-    gl.disable(gl.BLEND)
-    sunraysMaskProgram.bind()
-    gl.uniform1i(sunraysMaskProgram.uniforms.uTexture, source.attach(0))
-    blit(mask)
-
-    sunraysProgram.bind()
-    gl.uniform1f(sunraysProgram.uniforms.weight, config.SUNRAYS_WEIGHT)
-    gl.uniform1i(sunraysProgram.uniforms.uTexture, mask.attach(0))
-    blit(destination)
-  }
-
-  function blur(target, temp, iterations) {
-    blurProgram.bind()
-    for (let i = 0; i < iterations; i++) {
-      gl.uniform2f(blurProgram.uniforms.texelSize, target.texelSizeX, 0.0)
-      gl.uniform1i(blurProgram.uniforms.uTexture, target.attach(0))
-      blit(temp)
-
-      gl.uniform2f(blurProgram.uniforms.texelSize, 0.0, target.texelSizeY)
-      gl.uniform1i(blurProgram.uniforms.uTexture, temp.attach(0))
-      blit(target)
-    }
   }
 
   function splatPointer(pointer) {
