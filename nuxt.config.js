@@ -61,15 +61,13 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
-    extend (config, ctx) {
-
+    extend(config, ctx) {
       config.module.rules.push({
         enforce: 'pre',
-        test: /\.glsl$/,
+        test: /\.glsl|frag|vert$/,
         loader: 'raw-loader',
         exclude: /(node_modules)/
-      });
-
+      })
     }
   }
 }

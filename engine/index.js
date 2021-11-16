@@ -4,7 +4,7 @@ import Stats from 'stats.js'
 // import _ from 'lodash'
 import Stage from './Stage'
 import Fluid from './Fluid'
-
+import oglpixi from './ogl-pixi'
 const width = 600
 const height = 400
 const stats = new Stats()
@@ -15,8 +15,11 @@ let isReadyToDraw = false
 function init() {
   stage = new Stage(width, height, draw)
   ctx = stage.getNewCtx()
+  console.log(stage)
   fluid = new Fluid(width, height, ctx)
-  // fluid.init()
+  //   const OP = oglpixi()
+  oglpixi.init(stage.app.renderer)
+  //   fluid.init()
   //   stage.renderer.plugins.interaction.on('pointerdown', onPointerDown);
   //   stage.app.stage.addEventListener('click', (e) => onPointerDown(e))
   // pointermove
