@@ -20,13 +20,13 @@ export default function (canvas) {
     PAUSED: false,
     BACK_COLOR: { r: 0, g: 0, b: 0 },
     TRANSPARENT: false,
-    BLOOM: true,
+    BLOOM: false,
     BLOOM_ITERATIONS: 8,
     BLOOM_RESOLUTION: 256,
     BLOOM_INTENSITY: 0.8,
     BLOOM_THRESHOLD: 0.6,
     BLOOM_SOFT_KNEE: 0.7,
-    SUNRAYS: true,
+    SUNRAYS: false,
     SUNRAYS_RESOLUTION: 196,
     SUNRAYS_WEIGHT: 1.0
   }
@@ -1492,11 +1492,28 @@ export default function (canvas) {
     velocity.swap()
 
     gl.uniform1i(splatProgram.uniforms.uTarget, dye.read.attach(0))
-    gl.uniform3f(splatProgram.uniforms.color, color.r, color.g, color.b)
+    // gl.uniform3f(splatProgram.uniforms.color, color.r, color.g, color.b)
+    const colorPos = getColorFromPosDelta(dx, dy)
+    gl.uniform3f(
+      splatProgram.uniforms.color,
+      colorPos.r,
+      colorPos.g,
+      colorPos.b
+    )
     blit(dye.write)
     dye.swap()
   }
-
+  function getColorFromPosDelta(dx, dy) {
+    const force = 10
+    const r = (Math.sign(dx) * Math.min(Math.abs(dx / force), 1) + 1) / 2
+    const g = (Math.sign(dy) * Math.min(Math.abs(dy / force), 1) + 1) / 2
+    // console.log(r, g)
+    return {
+      r,
+      g,
+      b: 0
+    }
+  }
   function correctRadius(radius) {
     const aspectRatio = canvas.width / canvas.height
     if (aspectRatio > 1) radius *= aspectRatio
