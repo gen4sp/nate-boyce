@@ -1,3 +1,44 @@
+import {
+  Renderer,
+  Camera,
+  RenderTarget,
+  Geometry,
+  Program,
+  // Texture,
+  TextureLoader,
+  Mesh,
+  Color,
+  Vec2,
+  // Box,
+  Triangle,
+  // NormalProgram,
+  Post
+} from 'ogl-nuxt'
+const tvertex = /* glsl */ `
+precision highp float;
+attribute vec4 aVertexPosition;
+attribute vec2 aTextureCoord;
+
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+
+varying highp vec2 vTextureCoord;
+
+void main(void) {
+  gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+  vTextureCoord = aTextureCoord;
+} `
+
+const tfragment = /* glsl */ `
+precision highp float;
+vec2 vTextureCoord;
+
+uniform sampler2D uSampler;
+
+void main(void) {
+  gl_FragColor = texture2D(uSampler, vTextureCoord);
+}
+            `
 const fragment = /* glsl */ `
     precision highp float;
     uniform sampler2D tMap;
@@ -218,22 +259,9 @@ const gradientSubtractShader = /* glsl */ `
     }
 `
 function init() {
-  import {
-    Renderer,
-    Camera,
-    RenderTarget,
-    Geometry,
-    Program,
-    //   Texture,
-    Mesh,
-    Color,
-    Vec2,
-    Box,
-    NormalProgram,
-    Post
-  } from 'ogl'
   const renderer = new Renderer({ dpr: 2 })
   const gl = renderer.gl
+  const baseTexture = TextureLoader.load(gl, { src: 'images/pic.jpg' })
   document.body.appendChild(gl.canvas)
   gl.clearColor(1, 1, 1, 1)
 
@@ -629,20 +657,41 @@ function init() {
   }
 
   // Create initial scene
-  const geometry = new Box(gl)
-  const mesh = new Mesh(gl, { geometry, program: new NormalProgram(gl) })
+  // const geometry = new Box(gl)
+  // const geometry = new Triangle(gl, {})
+  // const mesh = new Mesh(gl, { geometry, program: new NormalProgram(gl) })
 
-  for (let i = 0; i < 20; i++) {
-    const m = new Mesh(gl, { geometry, program: new NormalProgram(gl) })
-    m.position.set(
-      Math.random() * 3 - 1.5,
-      Math.random() * 3 - 1.5,
-      Math.random() * 3 - 1.5
-    )
-    m.rotation.set(Math.random() * 6.28 - 3.14, Math.random() * 6.28 - 3.14, 0)
-    m.scale.set(Math.random() * 0.5 + 0.1)
-    m.setParent(mesh)
-  }
+  // for (let i = 0; i < 20; i++) {
+  //   const m = new Mesh(gl, { geometry, program: new NormalProgram(gl) })
+  //   m.position.set(
+  //     Math.random() * 3 - 1.5,
+  //     Math.random() * 3 - 1.5,
+  //     Math.random() * 3 - 1.5
+  //   )
+  //   m.rotation.set(Math.random() * 6.28 - 3.14, Math.random() * 6.28 - 3.14, 0)
+  //   m.scale.set(Math.random() * 0.5 + 0.1)
+  //   m.setParent(mesh)
+  // }
+
+  const p11 = new Program(gl, {
+    vertex: tvertex,
+    fragment: tfragment,
+    uniforms: {
+      tMap: { value: baseTexture }
+    }
+    // attribLocations: {
+    //   vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+    //   textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
+    // },
+  })
+
+  const mesh = new Mesh(gl, {
+    geometry: new Triangle(gl, {
+      aVertexPosition: gl.getAttribLocation(p11.program, 'aVertexPosition'),
+      textureCoord: gl.getAttribLocation(p11.program, 'aTextureCoord')
+    }),
+    program: p11
+  })
 
   const pass = post.addPass({
     fragment,
@@ -764,8 +813,8 @@ function init() {
     // Update post pass uniform with the simulation output
     pass.uniforms.tFluid.value = density.read.texture
 
-    mesh.rotation.y -= 0.0025
-    mesh.rotation.x -= 0.005
+    // mesh.rotation.y -= 0.0025
+    // mesh.rotation.x -= 0.005
 
     pass.uniforms.uTime.value = t * 0.001
 

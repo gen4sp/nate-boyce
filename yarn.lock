@@ -6345,6 +6345,11 @@ object.values@^1.1.0, object.values@^1.1.5:
     define-properties "^1.1.3"
     es-abstract "^1.19.1"
 
+ogl-nuxt@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/ogl-nuxt/-/ogl-nuxt-0.0.2.tgz#7e878cbe1f90e55f24fef7007839c5887a1c611a"
+  integrity sha512-hjSobFpI8sfQwSr4phZRcv99n5XfyQyY2BG1A1ba3ariwQ6Xk28w0tfZnN/7l7lc0Kb5yoqcgtwCFdMIBh/aaw==
+
 ogl@^0.0.76:
   version "0.0.76"
   resolved "https://registry.yarnpkg.com/ogl/-/ogl-0.0.76.tgz#f026f7e28769ed31e0d720917df43f0f6aaa13b8"
