@@ -3,6 +3,7 @@ import Stats from 'stats.js'
 // import randomcolor from 'randomcolor'
 // import _ from 'lodash'
 // import Stage from './Stage'
+
 import Pavel from './Pavel'
 
 // const width = 600
@@ -27,6 +28,7 @@ function init() {
   const body = document.getElementsByTagName('body')[0]
   body.appendChild(canvas)
   // const canvas = document.getElementsByTagName('canvas')[0];
+
   Pavel(canvas)
   // fluid.init()
   //   stage.renderer.plugins.interaction.on('pointerdown', onPointerDown);

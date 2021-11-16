@@ -13,6 +13,7 @@ import gradientSubstract from './gradientSubstract.frag'
 import pressureFrag from './pressure.frag'
 import splatFrag from './splat.frag'
 import vorticityFrag from './vorticity.frag'
+import displacementFrag from './displacement.frag'
 
 const SHADERS_SRCS = {
   advectionFrag,
@@ -29,7 +30,8 @@ const SHADERS_SRCS = {
   gradientSubstract,
   pressureFrag,
   splatFrag,
-  vorticityFrag
+  vorticityFrag,
+  displacementFrag
 }
 // const SHADERS_UNFORMS = {
 //   advectionFrag:{
