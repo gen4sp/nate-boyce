@@ -7,7 +7,7 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'jenstark-life-forms',
+    title: 'Fluid',
     htmlAttrs: {
       lang: 'en'
     },

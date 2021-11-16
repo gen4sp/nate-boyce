@@ -3,10 +3,12 @@
 </template>
 
 <script>
-import '../engine'
+import engine from '../engine'
 
 export default {
-  mounted() {}
+  mounted() {
+    engine.init()
+  }
 }
 </script>
 

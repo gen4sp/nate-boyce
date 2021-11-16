@@ -4,11 +4,12 @@ import Stats from 'stats.js'
 // import _ from 'lodash'
 // import Stage from './Stage'
 
-import Pavel from './Pavel'
+// import Pavel from './Pavel'
 
 // const width = 600
 // const height = 400
 // const stage = null
+import OGL from './ogl'
 const stats = new Stats()
 // const ctx = null
 // let isReadyToDraw = false
@@ -16,20 +17,20 @@ function init() {
   //   stage = new Stage(width, height, draw)
   //   ctx = stage.getNewCtx()
   //   const canvas = stage.getGraphicsCanvas(ctx)
-  const canvas = document.createElement('canvas')
+  //   const canvas = document.createElement('canvas')
 
-  canvas.id = 'CursorLayer'
-  canvas.width = 600
-  canvas.height = 400
-  //   canvas.style.zIndex = 8
-  //   canvas.style.position = 'absolute'
-  canvas.style.border = '1px solid'
+  //   canvas.id = 'CursorLayer'
+  //   canvas.width = 600
+  //   canvas.height = 400
+  //   //   canvas.style.zIndex = 8
+  //   //   canvas.style.position = 'absolute'
+  //   canvas.style.border = '1px solid'
 
-  const body = document.getElementsByTagName('body')[0]
-  body.appendChild(canvas)
+  //   const body = document.getElementsByTagName('body')[0]
+  //   body.appendChild(canvas)
   // const canvas = document.getElementsByTagName('canvas')[0];
 
-  Pavel(canvas)
+  //   Pavel(canvas)
   // fluid.init()
   //   stage.renderer.plugins.interaction.on('pointerdown', onPointerDown);
   //   stage.app.stage.addEventListener('click', (e) => onPointerDown(e))
@@ -46,6 +47,7 @@ function init() {
   //     fluid.init(texture)
   //     isReadyToDraw = true
   //   })
+  OGL.init()
 }
 // function draw(delta) {
 //   if (!isReadyToDraw) return
@@ -61,5 +63,6 @@ function init() {
 //   // fluid.highlight(Math.round(x), Math.round(y))
 //   // fluid.tick()
 // }
-
-init()
+export default {
+  init
+}

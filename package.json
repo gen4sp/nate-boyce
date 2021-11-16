@@ -19,6 +19,7 @@
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
     "nuxt": "^2.15.7",
+    "ogl": "^0.0.76",
     "pixi.js": "^6.2.0",
     "randomcolor": "^0.6.2",
     "stats.js": "^0.17.0"
