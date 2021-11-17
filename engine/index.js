@@ -47,7 +47,14 @@ function init() {
   //     fluid.init(texture)
   //     isReadyToDraw = true
   //   })
-  OGL.init()
+  OGL.init(
+    () => {
+      stats.begin()
+    },
+    () => {
+      stats.end()
+    }
+  )
 }
 // function draw(delta) {
 //   if (!isReadyToDraw) return

@@ -8,12 +8,14 @@ import {
   TextureLoader,
   Mesh,
   Color,
+  Transform,
   Vec2,
   // Box,
-  Triangle,
+  // Triangle,
   // NormalProgram,
   Post
 } from 'ogl-nuxt'
+
 // const tvertex = /* glsl */ `
 // precision highp float;
 // attribute vec4 aVertexPosition;
@@ -49,13 +51,23 @@ const fragment = /* glsl */ `
     void main() {
         vec3 fluid = texture2D(tFluid, vUv).rgb;
         vec2 uv = vUv - fluid.rg * 0.0002;
-        gl_FragColor = mix( texture2D(tMap, uv), vec4(fluid * 0.1 + 0.5, 1), step(0.5, vUv.x) ) ;
+        //gl_FragColor = mix( texture2D(tMap, uv), vec4(fluid * 0.1 + 0.5, 1), step(0.5, vUv.x) ) ;
+        gl_FragColor = mix( texture2D(tMap, uv), vec4(fluid, 1), step(0.5, vUv.x) ) ;
         // Oscillate between fluid values and the distorted scene
          //gl_FragColor = mix(texture2D(tMap, uv), vec4(fluid * 0.1 + 0.5, 1), smoothstep(0.0, 0.7, sin(uTime)));
          //gl_FragColor = texture2D(tMap, uv);
     }
 `
-
+const baseVertex2 = /* glsl */ `
+    precision highp float;
+    attribute vec2 position;
+    attribute vec2 uv;
+    varying vec2 vUv;
+    void main () {
+        vUv = uv;
+        gl_Position = vec4(position, 0, 1);
+    }
+`
 const baseVertex = /* glsl */ `
     precision highp float;
     attribute vec2 position;
@@ -260,10 +272,29 @@ const gradientSubtractShader = /* glsl */ `
         gl_FragColor = vec4(velocity, 0.0, 1.0);
     }
 `
-function init() {
+// function createSneakPick() {
+//   const canvas = document.createElement('canvas')
+
+//   canvas.id = 'CursorLayer'
+//   canvas.width = 600
+//   canvas.height = 400
+//   canvas.style.zIndex = 8
+//   canvas.style.position = 'absolute'
+//   canvas.style.border = '1px solid'
+
+//   const body = document.getElementsByTagName('body')[0]
+//   body.appendChild(canvas)
+//   return canvas.getContext('2d')
+// }
+function init(drawStartCallback, drawStopCallback) {
+  // const sneakpick = createSneakPick()
+
   const renderer = new Renderer({ dpr: 2 })
   const gl = renderer.gl
-  const baseTexture = TextureLoader.load(gl, { src: 'images/pic.jpg' })
+
+  const baseTexture = TextureLoader.load(gl, { src: 'images/pic1.jpg' })
+  const baseTexture2 = TextureLoader.load(gl, { src: 'images/pic2.jpg' })
+  console.log(' <><> ', baseTexture2, baseTexture)
   document.body.appendChild(gl.canvas)
   gl.clearColor(1, 1, 1, 1)
 
@@ -366,7 +397,7 @@ function init() {
   const dyeRes = 512
 
   // Main inputs to control look and feel of fluid
-  const iterations = 1
+  const iterations = 3
   const densityDissipation = 0.99
   const velocityDissipation = 0.99
   const pressureDissipation = 0.8
@@ -390,6 +421,7 @@ function init() {
 
   if (gl.renderer.isWebgl2) {
     rgba = getSupportedFormat(gl, gl.RGBA16F, gl.RGBA, halfFloat)
+    // rgb = getSupportedFormat(gl, gl.RG16F, gl.RGB, halfFloat)
     rg = getSupportedFormat(gl, gl.RG16F, gl.RG, halfFloat)
     r = getSupportedFormat(gl, gl.R16F, gl.RED, halfFloat)
   } else {
@@ -448,13 +480,47 @@ function init() {
     minFilter: gl.NEAREST,
     depth: false
   })
-
+  // const targetFinalBuffer = new RenderTarget(gl, {
+  //   width: window.innerWidth,
+  //   height: window.innerHeight,
+  //   type: halfFloat,
+  //   format: rgba?.format,
+  //   internalFormat: rgba?.internalFormat,
+  //   minFilter: filtering,
+  //   depth: false
+  // })
+  const targetFinalBuffer = createDoubleFBO(gl, {
+    width: renderer.width,
+    height: renderer.height
+    // type: halfFloat,
+    // format: rgba?.format,
+    // internalFormat: rgba?.internalFormat,
+    // minFilter: filtering,
+    // depth: false
+  })
   // Geometry to be used for the simulation programs
   const triangle = new Geometry(gl, {
     position: { size: 2, data: new Float32Array([-1, -1, 3, -1, -1, 3]) },
     uv: { size: 2, data: new Float32Array([0, 0, 2, 0, 0, 2]) }
   })
+  // const triangle2 = new Geometry(gl, {
+  //   position: { size: 2, data: new Float32Array([-1, -1, 3, -1, -1, 3]) },
+  //   uv: { size: 2, data: new Float32Array([0, 0, 2, 0, 0, 2]) }
+  // })
 
+  // const targetProgram = new Mesh(gl, {
+  //   geometry: triangle,
+  //   program: new Program(gl, {
+  //     vertex: baseVertex,
+  //     fragment: tfragment,
+  //     uniforms: {
+  //       uSampler: { value: baseTexture }
+  //       // uSampler: { value: curl.texture }
+  //     },
+  //     depthTest: false,
+  //     depthWrite: false
+  //   })
+  // })
   // Create fluid simulation programs
   const clearProgram = new Mesh(gl, {
     geometry: triangle,
@@ -658,33 +724,21 @@ function init() {
     density.swap()
   }
 
-  // Create initial scene
-  // const geometry = new Box(gl)
-  // const geometry = new Triangle(gl, {})
-  // const mesh = new Mesh(gl, { geometry, program: new NormalProgram(gl) })
-
-  // for (let i = 0; i < 20; i++) {
-  //   const m = new Mesh(gl, { geometry, program: new NormalProgram(gl) })
-  //   m.position.set(
-  //     Math.random() * 3 - 1.5,
-  //     Math.random() * 3 - 1.5,
-  //     Math.random() * 3 - 1.5
-  //   )
-  //   m.rotation.set(Math.random() * 6.28 - 3.14, Math.random() * 6.28 - 3.14, 0)
-  //   m.scale.set(Math.random() * 0.5 + 0.1)
-  //   m.setParent(mesh)
-  // }
-
   const p11 = new Program(gl, {
-    vertex: baseVertex,
+    vertex: baseVertex2,
     fragment: tfragment,
     uniforms: {
       uSampler: { value: baseTexture }
+      // uSampler: { value: curl.texture }
     }
   })
 
+  // const mesh = new Mesh(gl, {
+  //   geometry: triangle,
+  //   program: p11
+  // })
   const mesh = new Mesh(gl, {
-    geometry: new Triangle(gl),
+    geometry: triangle,
     program: p11
   })
 
@@ -692,12 +746,27 @@ function init() {
     fragment,
     uniforms: {
       tFluid: { value: null },
-      uTime: { value: 0 }
+      uTime: { value: 0 },
+      tMap: { value: null }
     }
   })
+  const scene = new Transform()
+  mesh.setParent(scene)
+  // const target = new RenderTarget(gl, {
+  //   color: 2, // Number of render targets
 
+  //   // Use half float to get accurate position values
+  //   type: gl.renderer.isWebgl2
+  //     ? gl.HALF_FLOAT
+  //     : gl.renderer.extensions.OES_texture_half_float.HALF_FLOAT_OES,
+  //   internalFormat: gl.renderer.isWebgl2 ? gl.RGBA16F : gl.RGBA,
+  //   minFilter: supportLinearFiltering ? gl.LINEAR : gl.NEAREST
+  // })
+
+  console.log(targetFinalBuffer.read)
   requestAnimationFrame(update)
   function update(t) {
+    drawStartCallback()
     requestAnimationFrame(update)
 
     // Perform all of the fluid simulation renders
@@ -802,19 +871,30 @@ function init() {
     })
     density.swap()
 
+    //  - - - - - - - - - My attept
+    // gl.renderer.render({
+    //   scene: mesh,
+    //   target: targetFinalBuffer.write,
+    //   sort: false,
+    //   update: false
+    // })
+    // targetFinalBuffer.swap()
+    // p11.uniforms.uSampler.value = targetFinalBuffer.read.texture
+    // - - -- -
     // Set clear back to default
+
     gl.renderer.autoClear = true
 
     // Update post pass uniform with the simulation output
-    pass.uniforms.tFluid.value = density.read.texture
 
-    // mesh.rotation.y -= 0.0025
-    // mesh.rotation.x -= 0.005
+    pass.uniforms.tFluid.value = density.read.texture
 
     pass.uniforms.uTime.value = t * 0.001
 
     // Replace Renderer.render with post.render. Use the same arguments.
-    post.render({ scene: mesh, camera })
+    post.render({ scene, camera })
+
+    drawStopCallback()
   }
 }
 export default {
