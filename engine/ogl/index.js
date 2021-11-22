@@ -47,15 +47,22 @@ const fragment = /* glsl */ `
     uniform sampler2D tMap;
     uniform sampler2D tFluid;
     uniform float uTime;
+    uniform float uWhiter;
     varying vec2 vUv;
     void main() {
         vec3 fluid = texture2D(tFluid, vUv).rgb;
+        // float bright = 0.5 * (fluid.r + fluid.g);
+        // float tresholdr = mix(0.0, fluid.r, step(0.5, bright));
+        // float tresholdg = mix(0.0, fluid.g, step(0.5, bright));
+        // vec2 ft = vec2(tresholdr, tresholdg);
         vec2 uv = vUv - fluid.rg * 0.0002;
         //gl_FragColor = mix( texture2D(tMap, uv), vec4(fluid * 0.1 + 0.5, 1), step(0.5, vUv.x) ) ;
-        gl_FragColor = mix( texture2D(tMap, uv), vec4(fluid, 1), step(0.5, vUv.x) ) ;
+        //gl_FragColor = mix( texture2D(tMap, uv), vec4(fluid, 1), step(0.5, vUv.x) ) ;
+        
         // Oscillate between fluid values and the distorted scene
          //gl_FragColor = mix(texture2D(tMap, uv), vec4(fluid * 0.1 + 0.5, 1), smoothstep(0.0, 0.7, sin(uTime)));
-         //gl_FragColor = texture2D(tMap, uv);
+         gl_FragColor = mix(texture2D(tMap, uv), vec4(1,1,1, 1), smoothstep(0.5, 1.0, uTime));
+         //gl_FragColor = texture2D(tMap, vUv);
     }
 `
 const baseVertex2 = /* glsl */ `
@@ -402,7 +409,7 @@ function init(drawStartCallback, drawStopCallback) {
   const velocityDissipation = 0.99
   const pressureDissipation = 0.8
   const curlStrength = 20
-  const radius = 0.2
+  const radius = 0.6
 
   // Common uniform
   const texelSize = { value: new Vec2(1 / simRes) }
@@ -499,6 +506,16 @@ function init(drawStartCallback, drawStopCallback) {
     // depth: false
   })
   // Geometry to be used for the simulation programs
+  // const quad = new Geometry(gl, {
+  //   position: {
+  //     size: 2,
+  //     data: new Float32Array([-1, -1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1])
+  //   },
+  //   uv: {
+  //     size: 2,
+  //     data: new Float32Array([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1])
+  //   }
+  // })
   const triangle = new Geometry(gl, {
     position: { size: 2, data: new Float32Array([-1, -1, 3, -1, -1, 3]) },
     uv: { size: 2, data: new Float32Array([0, 0, 2, 0, 0, 2]) }
@@ -651,50 +668,63 @@ function init(drawStartCallback, drawStopCallback) {
   })
 
   const splats = []
+  function getSplats() {
+    // splats = []
 
-  // Create handlers to get mouse position and velocity
-  const isTouchCapable = 'ontouchstart' in window
-  if (isTouchCapable) {
-    window.addEventListener('touchstart', updateMouse, false)
-    window.addEventListener('touchmove', updateMouse, false)
-  } else {
-    window.addEventListener('mousemove', updateMouse, false)
-  }
-
-  const lastMouse = new Vec2()
-  function updateMouse(e) {
-    if (e.changedTouches && e.changedTouches.length) {
-      e.x = e.changedTouches[0].pageX
-      e.y = e.changedTouches[0].pageY
-    }
-    if (e.x === undefined) {
-      e.x = e.pageX
-      e.y = e.pageY
-    }
-
-    if (!lastMouse.isInit) {
-      lastMouse.isInit = true
-
-      // First input
-      lastMouse.set(e.x, e.y)
-    }
-
-    const deltaX = e.x - lastMouse.x
-    const deltaY = e.y - lastMouse.y
-
-    lastMouse.set(e.x, e.y)
-
-    // Add if the mouse is moving
-    if (Math.abs(deltaX) || Math.abs(deltaY)) {
+    for (let i = 0; i < 5; i++) {
       splats.push({
         // Get mouse value in 0 to 1 range, with y flipped
-        x: e.x / gl.renderer.width,
-        y: 1.0 - e.y / gl.renderer.height,
-        dx: deltaX * 5.0,
-        dy: deltaY * -5.0
+        x: Math.random(),
+        y: Math.random(),
+        dx: Math.random() * 4000 - 2000,
+        dy: Math.random() * 4000 - 2000
       })
     }
+    // console.log('get splats', JSON.stringify(splats, null, 3))
   }
+  // Create handlers to get mouse position and velocity
+  // const isTouchCapable = 'ontouchstart' in window
+  // if (isTouchCapable) {
+  //   window.addEventListener('touchstart', updateMouse, false)
+  //   window.addEventListener('touchmove', updateMouse, false)
+  // } else {
+  //   window.addEventListener('mousemove', updateMouse, false)
+  // }
+
+  // const lastMouse = new Vec2()
+  // function updateMouse(e) {
+  //   if (e.changedTouches && e.changedTouches.length) {
+  //     e.x = e.changedTouches[0].pageX
+  //     e.y = e.changedTouches[0].pageY
+  //   }
+  //   if (e.x === undefined) {
+  //     e.x = e.pageX
+  //     e.y = e.pageY
+  //   }
+
+  //   if (!lastMouse.isInit) {
+  //     lastMouse.isInit = true
+
+  //     // First input
+  //     lastMouse.set(e.x, e.y)
+  //   }
+
+  //   const deltaX = e.x - lastMouse.x
+  //   const deltaY = e.y - lastMouse.y
+
+  //   lastMouse.set(e.x, e.y)
+
+  //   // Add if the mouse is moving
+  //   if (Math.abs(deltaX) || Math.abs(deltaY)) {
+  //     splats.push({
+  //       // Get mouse value in 0 to 1 range, with y flipped
+  //       x: e.x / gl.renderer.width,
+  //       y: 1.0 - e.y / gl.renderer.height,
+  //       dx: deltaX * 5.0,
+  //       dy: deltaY * -5.0
+  //     })
+  //   }
+  // }
 
   // Function to draw number of interactions onto input render target
   function splat({ x, y, dx, dy }) {
@@ -747,7 +777,8 @@ function init(drawStartCallback, drawStopCallback) {
     uniforms: {
       tFluid: { value: null },
       uTime: { value: 0 },
-      tMap: { value: null }
+      tMap: { value: null },
+      uWhiter: { value: 0 }
     }
   })
   const scene = new Transform()
@@ -889,10 +920,28 @@ function init(drawStartCallback, drawStopCallback) {
 
     pass.uniforms.tFluid.value = density.read.texture
 
-    pass.uniforms.uTime.value = t * 0.001
+    const flashTriger = (t % 3000) / 3000
+    if (flashTriger < 0.01) {
+      // p11.uniforms.uSampler.value = baseTexture
+      getSplats()
+    }
+    pass.uniforms.uTime.value = 1 - flashTriger
+
+    // pass.uniforms.uWhiter.value = t * 0.001
 
     // Replace Renderer.render with post.render. Use the same arguments.
     post.render({ scene, camera })
+    post.render({
+      scene,
+      camera,
+      target: targetFinalBuffer.write,
+      sort: false,
+      update: false
+    })
+    targetFinalBuffer.swap()
+    if (t > 2500) {
+      p11.uniforms.uSampler.value = baseTexture // targetFinalBuffer.read.texture
+    }
 
     drawStopCallback()
   }
