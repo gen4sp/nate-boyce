@@ -299,9 +299,9 @@ function init(drawStartCallback, drawStopCallback) {
   const renderer = new Renderer({ dpr: 2 })
   const gl = renderer.gl
 
-  const baseTexture = TextureLoader.load(gl, { src: 'images/pic1.jpg' })
-  const baseTexture2 = TextureLoader.load(gl, { src: 'images/pic2.jpg' })
-  console.log(' <><> ', baseTexture2, baseTexture)
+  const baseTexture = TextureLoader.load(gl, { src: 'images/cryo.png' })
+  // const baseTexture2 = TextureLoader.load(gl, { src: 'images/pic2.jpg' })
+  // console.log(' <><> ', baseTexture2, baseTexture)
   document.body.appendChild(gl.canvas)
   gl.clearColor(1, 1, 1, 1)
 
