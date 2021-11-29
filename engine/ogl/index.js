@@ -55,7 +55,7 @@ const fragment = /* glsl */ `
         // float tresholdr = mix(0.0, fluid.r, step(0.5, bright));
         // float tresholdg = mix(0.0, fluid.g, step(0.5, bright));
         // vec2 ft = vec2(tresholdr, tresholdg);
-        vec2 uv = vUv - fluid.rg * 0.0002;
+        vec2 uv = vUv - fluid.rg * 0.00001;
         //gl_FragColor = mix( texture2D(tMap, uv), vec4(fluid * 0.1 + 0.5, 1), step(0.5, vUv.x) ) ;
         //gl_FragColor = mix( texture2D(tMap, uv), vec4(fluid, 1), step(0.5, vUv.x) ) ;
         
@@ -404,12 +404,12 @@ function init(drawStartCallback, drawStopCallback) {
   const dyeRes = 512
 
   // Main inputs to control look and feel of fluid
-  const iterations = 3
+  const iterations = 4
   const densityDissipation = 0.99
-  const velocityDissipation = 0.99
-  const pressureDissipation = 0.8
-  const curlStrength = 20
-  const radius = 0.6
+  const velocityDissipation = 0.9
+  const pressureDissipation = 0.99
+  const curlStrength = 50
+  const radius = 1.8
 
   // Common uniform
   const texelSize = { value: new Vec2(1 / simRes) }
@@ -584,8 +584,8 @@ function init(drawStartCallback, drawStopCallback) {
         dyeTexelSize: { value: new Vec2(1 / dyeRes, 1 / dyeRes) },
         uVelocity: { value: null },
         uSource: { value: null },
-        dt: { value: 0.016 },
-        dissipation: { value: 1.0 }
+        dt: { value: 0.06 },
+        dissipation: { value: 0.01 }
       },
       depthTest: false,
       depthWrite: false
@@ -670,14 +670,14 @@ function init(drawStartCallback, drawStopCallback) {
   const splats = []
   function getSplats() {
     // splats = []
-
+    const strengh = 1000
     for (let i = 0; i < 5; i++) {
       splats.push({
         // Get mouse value in 0 to 1 range, with y flipped
         x: Math.random(),
         y: Math.random(),
-        dx: Math.random() * 4000 - 2000,
-        dy: Math.random() * 4000 - 2000
+        dx: Math.random() * strengh * 2 - strengh,
+        dy: Math.random() * strengh * 2 - strengh
       })
     }
     // console.log('get splats', JSON.stringify(splats, null, 3))
@@ -922,10 +922,10 @@ function init(drawStartCallback, drawStopCallback) {
 
     const flashTriger = (t % 3000) / 3000
     if (flashTriger < 0.01) {
-      // p11.uniforms.uSampler.value = baseTexture
+      p11.uniforms.uSampler.value = baseTexture
       getSplats()
     }
-    pass.uniforms.uTime.value = 1 - flashTriger
+    // pass.uniforms.uTime.value = 1 - flashTriger
 
     // pass.uniforms.uWhiter.value = t * 0.001
 
@@ -940,7 +940,7 @@ function init(drawStartCallback, drawStopCallback) {
     })
     targetFinalBuffer.swap()
     if (t > 2500) {
-      p11.uniforms.uSampler.value = baseTexture // targetFinalBuffer.read.texture
+      p11.uniforms.uSampler.value = targetFinalBuffer.read.texture
     }
 
     drawStopCallback()
