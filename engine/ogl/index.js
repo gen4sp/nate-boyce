@@ -6,6 +6,8 @@ const densityDissipation = 0.97
 const velocityDissipation = 0.98
 const pressureDissipation = 0.8
 const splatsQty = 6
+let splatPower = 1
+const debug = true
 // const radius = 1.8
 const simRes = 128
 const dyeRes = 512
@@ -42,10 +44,10 @@ function init(drawStartCallback, drawStopCallback) {
   window.addEventListener('resize', resize, false)
   resize()
 
-  const splats = []
+  let splats = []
   function getSplats() {
-    // splats = []
-    const strengh = 100
+    splats = []
+    const strengh = 3
     for (let i = 0; i < splatsQty; i++) {
       splats.push({
         // Get mouse value in 0 to 1 range, with y flipped
@@ -69,7 +71,7 @@ function init(drawStartCallback, drawStopCallback) {
     // })
     GUI.add({
       label: 'showFluid',
-      defaultValue: true,
+      defaultValue: debug,
       onChange: (v) => {
         programManager.displacementProgram.program.uniforms.tDebug.value = v
       }
@@ -114,7 +116,7 @@ function init(drawStartCallback, drawStopCallback) {
       label: 'mix',
       min: 0.8,
       max: 1,
-      defaultValue: 0.986,
+      defaultValue: 1,
       step: 0.001,
       onChange: (v) => {
         programManager.displacementProgram.program.uniforms.tMix.value = v
@@ -129,7 +131,11 @@ function init(drawStartCallback, drawStopCallback) {
     programManager.splatProgram.program.uniforms.aspectRatio.value =
       gl.renderer.width / gl.renderer.height
     programManager.splatProgram.program.uniforms.point.value.set(x, y)
-    programManager.splatProgram.program.uniforms.color.value.set(dx, dy, 1.0)
+    programManager.splatProgram.program.uniforms.color.value.set(
+      dx * splatPower,
+      dy * splatPower,
+      0.0
+    )
     // programManager.splatProgram.program.uniforms.radius.value = 1.5 / 100.0
 
     gl.renderer.render({
@@ -153,6 +159,7 @@ function init(drawStartCallback, drawStopCallback) {
   }
 
   initGUI()
+  getSplats()
   requestAnimationFrame(update)
 
   function update(t) {
@@ -165,8 +172,8 @@ function init(drawStartCallback, drawStopCallback) {
 
     // Render all of the inputs since last frame
     for (let i = splats.length - 1; i >= 0; i--) {
-      splat(splats.splice(i, 1)[0])
-      // splat(splats[i])
+      // splat(splats.splice(i, 1)[0])
+      splat(splats[i])
     }
 
     programManager.curlProgram.program.uniforms.uVelocity.value =
@@ -304,6 +311,8 @@ function init(drawStartCallback, drawStopCallback) {
     // Update post pass uniform with the simulation output
 
     const flashTriger = (t % 3000) / 3000
+    splatPower = Math.sin(flashTriger * Math.PI)
+    console.log(splatPower)
     if (flashTriger < 0.01) {
       programManager.displacementProgram.program.uniforms.tMap.value =
         baseTexture

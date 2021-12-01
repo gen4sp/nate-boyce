@@ -34,7 +34,7 @@ const displacement = /* glsl */ `
     varying vec2 vUv;
     void main() {
         vec3 fluid = texture2D(tFluid, vUv).rgb;
-        vec2 uvDisp = vUv - fluid.rg * 0.0001;
+        vec2 uvDisp = vUv - fluid.rg * 0.00009;
         vec2 uvOrig = vUv - fluid.rg * 0.0001;
         vec4 dispCol = texture2D(tMap, uvDisp);
         vec4 origCol = texture2D(tOrigMap, uvOrig);
