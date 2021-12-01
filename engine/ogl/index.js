@@ -35,6 +35,7 @@ function init(drawStartCallback, drawStopCallback) {
   camera.lookAt([0, 0, 0])
 
   function resize() {
+    console.log('> ', window.innerWidth, window.innerHeight)
     renderer.setSize(window.innerWidth, window.innerHeight)
     camera.perspective({ aspect: gl.canvas.width / gl.canvas.height })
     post.resize()
@@ -100,8 +101,17 @@ function init(drawStartCallback, drawStopCallback) {
       max: 4,
       defaultValue: 1.8,
       onChange: (v) => {
-        // programManager.pass.uniforms.uBright.value = v
         programManager.splatProgram.program.uniforms.radius.value = v / 100.0
+      }
+    })
+    GUI.add({
+      label: 'mix',
+      min: 0.8,
+      max: 1,
+      defaultValue: 0.986,
+      step: 0.001,
+      onChange: (v) => {
+        programManager.displacementProgram.program.uniforms.tMix.value = v
       }
     })
   }
@@ -284,8 +294,6 @@ function init(drawStartCallback, drawStopCallback) {
     // - - -- -
     // Set clear back to default
 
-    gl.renderer.autoClear = true
-
     // Update post pass uniform with the simulation output
 
     const flashTriger = (t % 3000) / 3000
@@ -296,7 +304,7 @@ function init(drawStartCallback, drawStopCallback) {
     }
 
     programManager.pass.uniforms.uWhiter.value = 1 - flashTriger
-
+    gl.renderer.autoClear = true
     // Replace Renderer.render with post.render. Use the same arguments.
     post.render({ scene: programManager.scene, camera })
 

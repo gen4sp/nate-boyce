@@ -25,13 +25,20 @@ void main(void) {
 `
 const displacement = /* glsl */ `
     precision highp float;
+    precision highp sampler2D;
     uniform sampler2D tMap;
+    uniform sampler2D tOrigMap;
     uniform sampler2D tFluid;
+    uniform float tMix;
     varying vec2 vUv;
     void main() {
         vec3 fluid = texture2D(tFluid, vUv).rgb;
-        vec2 uv = vUv - fluid.rg * 0.00001;
-        gl_FragColor = texture2D(tMap, uv);
+        vec2 uvDisp = vUv - fluid.rg * 0.00001;
+        vec2 uvOrig = vUv - fluid.rg * 0.0001;
+        vec4 dispCol = texture2D(tMap, uvDisp);
+        vec4 origCol = texture2D(tOrigMap, uvOrig);
+        // gl_FragColor = dispCol;
+        gl_FragColor = (dispCol * tMix) + (origCol * (1.0 - tMix));
     }
 `
 const fragment = /* glsl */ `

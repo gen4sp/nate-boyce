@@ -88,8 +88,8 @@ class ProgramManager {
     //   depth: false
     // })
     this.targetFinalBuffer = createDoubleFBO(gl, {
-      width: renderer.width,
-      height: renderer.height
+      width: gl.canvas.width,
+      height: gl.canvas.height
     })
 
     const triangle = new Geometry(gl, {
@@ -247,7 +247,9 @@ class ProgramManager {
         fragment: SHADERS.displacement,
         uniforms: {
           tMap: { value: baseTexture },
-          tFluid: { value: null }
+          tOrigMap: { value: baseTexture },
+          tFluid: { value: null },
+          tMix: { value: 1 }
         },
         depthTest: false,
         depthWrite: false
