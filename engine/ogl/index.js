@@ -69,6 +69,13 @@ function init(drawStartCallback, drawStopCallback) {
     //   }
     // })
     GUI.add({
+      label: 'showFluid',
+      defaultValue: true,
+      onChange: (v) => {
+        programManager.displacementProgram.program.uniforms.tDebug.value = v
+      }
+    })
+    GUI.add({
       label: 'densityDissipation',
       min: 0,
       max: 2,

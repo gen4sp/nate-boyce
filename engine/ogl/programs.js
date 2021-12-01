@@ -249,6 +249,7 @@ class ProgramManager {
           tMap: { value: baseTexture },
           tOrigMap: { value: baseTexture },
           tFluid: { value: null },
+          tDebug: { value: true },
           tMix: { value: 1 }
         },
         depthTest: false,

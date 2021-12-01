@@ -30,6 +30,7 @@ const displacement = /* glsl */ `
     uniform sampler2D tOrigMap;
     uniform sampler2D tFluid;
     uniform float tMix;
+    uniform bool tDebug;
     varying vec2 vUv;
     void main() {
         vec3 fluid = texture2D(tFluid, vUv).rgb;
@@ -38,7 +39,12 @@ const displacement = /* glsl */ `
         vec4 dispCol = texture2D(tMap, uvDisp);
         vec4 origCol = texture2D(tOrigMap, uvOrig);
         // gl_FragColor = dispCol;
-        gl_FragColor = (dispCol * tMix) + (origCol * (1.0 - tMix));
+        if(tDebug){
+            gl_FragColor = vec4(fluid, 1);
+        } else {
+            gl_FragColor = (dispCol * tMix) + (origCol * (1.0 - tMix));
+        }
+        
     }
 `
 const fragment = /* glsl */ `
