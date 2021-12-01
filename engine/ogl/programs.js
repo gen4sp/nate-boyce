@@ -226,6 +226,32 @@ class ProgramManager {
       })
     })
 
+    this.postProgram = new Mesh(this.gl, {
+      geometry: triangle,
+      program: new Program(gl, {
+        vertex: SHADERS.baseVertex2,
+        fragment: SHADERS.postFragment,
+        uniforms: {
+          tMap: { value: null },
+          uWhiter: { value: null }
+        },
+        depthTest: false,
+        depthWrite: false
+      })
+    })
+
+    this.displacementProgram = new Mesh(this.gl, {
+      geometry: triangle,
+      program: new Program(gl, {
+        vertex: SHADERS.baseVertex2,
+        fragment: SHADERS.displacement,
+        uniforms: {
+          tMap: { value: null }
+        },
+        depthTest: false,
+        depthWrite: false
+      })
+    })
     // ----
 
     this.finalRenderProgram = new Program(gl, {

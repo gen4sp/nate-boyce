@@ -212,14 +212,15 @@ function init(drawStartCallback, drawStopCallback) {
     programManager.density.swap()
 
     //  - - - - - - - - - My attept
-    // gl.renderer.render({
-    //   scene: mesh,
-    //   target: targetFinalBuffer.write,
-    //   sort: false,
-    //   update: false
-    // })
-    // targetFinalBuffer.swap()
-    // finalRenderProgram.uniforms.uSampler.value = targetFinalBuffer.read.texture
+    gl.renderer.render({
+      scene: programManager.displacementProgram,
+      target: programManager.targetFinalBuffer.write,
+      sort: false,
+      update: false
+    })
+    programManager.targetFinalBuffer.swap()
+    programManager.finalRenderProgram.uniforms.uSampler.value =
+      programManager.targetFinalBuffer.read.texture
     // - - -- -
     // Set clear back to default
 
@@ -237,7 +238,7 @@ function init(drawStartCallback, drawStopCallback) {
     }
     // pass.uniforms.uTime.value = 1 - flashTriger
 
-    // pass.uniforms.uWhiter.value = t * 0.001
+    programManager.pass.uniforms.uWhiter.value = 1 - flashTriger
 
     // Replace Renderer.render with post.render. Use the same arguments.
     post.render({ scene: programManager.scene, camera })

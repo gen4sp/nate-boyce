@@ -8,7 +8,31 @@ uniform sampler2D uSampler;
 void main(void) {
   gl_FragColor = texture2D(uSampler, vUv);
 }
-            `
+`
+const postFragment = /* glsl */ `
+precision highp float;
+uniform sampler2D tMap;
+varying highp vec2 vUv;
+
+uniform sampler2D uSampler;
+uniform float uWhiter;
+
+void main(void) {
+  // gl_FragColor = texture2D(uSampler, vUv);
+  gl_FragColor = mix( texture2D(tMap, vUv), vec4(1,1,1, 1), smoothstep(0.0, 0.7, uWhiter) ) ;
+}
+`
+const displacement = /* glsl */ `
+    precision highp float;
+    uniform sampler2D tMap;
+    uniform sampler2D tFluid;
+    varying vec2 vUv;
+    void main() {
+        vec3 fluid = texture2D(tFluid, vUv).rgb;
+        vec2 uv = vUv - fluid.rg * 0.00001;
+        gl_FragColor = texture2D(tMap, uv);
+    }
+`
 const fragment = /* glsl */ `
     precision highp float;
     uniform sampler2D tMap;
@@ -260,5 +284,7 @@ export default {
   curlShader,
   vorticityShader,
   pressureShader,
-  gradientSubtractShader
+  gradientSubtractShader,
+  postFragment,
+  displacement
 }
