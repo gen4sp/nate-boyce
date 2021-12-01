@@ -1,14 +1,4 @@
-import {
-  Renderer,
-  Camera,
-  Program,
-  TextureLoader,
-  Mesh,
-  Transform,
-  Post,
-  Vec2
-} from 'ogl-nuxt'
-import SHADERS from './shaders'
+import { Renderer, Camera, TextureLoader, Post, Vec2 } from 'ogl-nuxt'
 import ProgramManager from './programs'
 const iterations = 4
 const densityDissipation = 0.99
@@ -23,24 +13,25 @@ const texelSize = { value: new Vec2(1 / simRes) }
 function init(drawStartCallback, drawStopCallback) {
   const renderer = new Renderer({ dpr: 2 })
   const gl = renderer.gl
-  const programManager = new ProgramManager(
+  const post = new Post(gl)
+  const baseTexture = TextureLoader.load(gl, { src: 'images/cryo.png' })
+  const programManager = new ProgramManager({
     gl,
     renderer,
     simRes,
     dyeRes,
     texelSize,
-    pressureDissipation
-  )
+    pressureDissipation,
+    post,
+    baseTexture
+  })
 
-  const baseTexture = TextureLoader.load(gl, { src: 'images/cryo.png' })
   document.body.appendChild(gl.canvas)
   gl.clearColor(1, 1, 1, 1)
 
   const camera = new Camera(gl, { fov: 35 })
   camera.position.set(0, 1, 5)
   camera.lookAt([0, 0, 0])
-
-  const post = new Post(gl)
 
   function resize() {
     renderer.setSize(window.innerWidth, window.innerHeight)
@@ -95,32 +86,6 @@ function init(drawStartCallback, drawStopCallback) {
     programManager.density.swap()
   }
 
-  const finalRenderProgram = new Program(gl, {
-    vertex: SHADERS.baseVertex2,
-    fragment: SHADERS.tfragment,
-    uniforms: {
-      uSampler: { value: baseTexture }
-    }
-  })
-
-  const mesh = new Mesh(gl, {
-    geometry: programManager.triangle,
-    program: finalRenderProgram
-  })
-
-  const pass = post.addPass({
-    fragment: SHADERS.fragment,
-    uniforms: {
-      tFluid: { value: null },
-      uTime: { value: 0 },
-      tMap: { value: null },
-      uWhiter: { value: 0 }
-    }
-  })
-  const scene = new Transform()
-  mesh.setParent(scene)
-
-  console.log(programManager.targetFinalBuffer.read)
   requestAnimationFrame(update)
   function update(t) {
     drawStartCallback()
@@ -262,11 +227,12 @@ function init(drawStartCallback, drawStopCallback) {
 
     // Update post pass uniform with the simulation output
 
-    pass.uniforms.tFluid.value = programManager.density.read.texture
+    programManager.pass.uniforms.tFluid.value =
+      programManager.density.read.texture
 
     const flashTriger = (t % 3000) / 3000
     if (flashTriger < 0.01) {
-      finalRenderProgram.uniforms.uSampler.value = baseTexture
+      programManager.finalRenderProgram.uniforms.uSampler.value = baseTexture
       getSplats()
     }
     // pass.uniforms.uTime.value = 1 - flashTriger
@@ -274,9 +240,9 @@ function init(drawStartCallback, drawStopCallback) {
     // pass.uniforms.uWhiter.value = t * 0.001
 
     // Replace Renderer.render with post.render. Use the same arguments.
-    post.render({ scene, camera })
+    post.render({ scene: programManager.scene, camera })
     post.render({
-      scene,
+      scene: programManager.scene,
       camera,
       target: programManager.targetFinalBuffer.write,
       sort: false,
@@ -284,7 +250,7 @@ function init(drawStartCallback, drawStopCallback) {
     })
     programManager.targetFinalBuffer.swap()
     if (t > 2500) {
-      finalRenderProgram.uniforms.uSampler.value =
+      programManager.finalRenderProgram.uniforms.uSampler.value =
         programManager.targetFinalBuffer.read.texture
     }
 

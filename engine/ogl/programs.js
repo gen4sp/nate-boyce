@@ -1,11 +1,28 @@
-import { RenderTarget, Geometry, Program, Mesh, Color, Vec2 } from 'ogl-nuxt'
+import {
+  RenderTarget,
+  Transform,
+  Geometry,
+  Program,
+  Mesh,
+  Color,
+  Vec2
+} from 'ogl-nuxt'
 import SHADERS from './shaders'
 import GlHelpers from './glHelpers'
 const curlStrength = 50
 // Resolution of simulation
 
 class ProgramManager {
-  constructor(gl, renderer, simRes, dyeRes, texelSize, pressureDissipation) {
+  constructor({
+    gl,
+    renderer,
+    simRes,
+    dyeRes,
+    texelSize,
+    pressureDissipation,
+    post,
+    baseTexture
+  }) {
     this.gl = gl
     // Create fluid simulation FBOs
     const { halfFloat, createDoubleFBO, supportLinearFiltering, rgba, rg, r } =
@@ -208,6 +225,32 @@ class ProgramManager {
         depthWrite: false
       })
     })
+
+    // ----
+
+    this.finalRenderProgram = new Program(gl, {
+      vertex: SHADERS.baseVertex2,
+      fragment: SHADERS.tfragment,
+      uniforms: {
+        uSampler: { value: baseTexture }
+      }
+    })
+    this.mesh = new Mesh(gl, {
+      geometry: triangle,
+      program: this.finalRenderProgram
+    })
+
+    this.pass = post.addPass({
+      fragment: SHADERS.fragment,
+      uniforms: {
+        tFluid: { value: null },
+        uTime: { value: 0 },
+        tMap: { value: null },
+        uWhiter: { value: 0 }
+      }
+    })
+    this.scene = new Transform()
+    this.mesh.setParent(this.scene)
   }
 }
 
