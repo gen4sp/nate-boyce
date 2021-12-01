@@ -271,7 +271,8 @@ class ProgramManager {
       fragment: SHADERS.postFragment,
       uniforms: {
         tMap: { value: null },
-        uWhiter: { value: 0 }
+        uWhiter: { value: 0 },
+        uBright: { value: 1 }
       }
     })
     this.scene = new Transform()

@@ -1,5 +1,6 @@
 import { Renderer, Camera, TextureLoader, Post, Vec2 } from 'ogl-nuxt'
 import ProgramManager from './programs'
+import GUI from './gui'
 const iterations = 4
 const densityDissipation = 0.99
 const velocityDissipation = 0.9
@@ -85,9 +86,18 @@ function init(drawStartCallback, drawStopCallback) {
     })
     programManager.density.swap()
   }
-  // setTimeout(() => {
+
+  GUI.add({
+    label: 'whiterBright',
+    min: 0,
+    max: 1,
+    defaultValue: 1,
+    onChange: (v) => {
+      programManager.pass.uniforms.uBright.value = v
+    }
+  })
+
   requestAnimationFrame(update)
-  // }, 500)
 
   function update(t) {
     drawStartCallback()
