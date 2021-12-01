@@ -246,7 +246,8 @@ class ProgramManager {
         vertex: SHADERS.baseVertex2,
         fragment: SHADERS.displacement,
         uniforms: {
-          tMap: { value: null }
+          tMap: { value: baseTexture },
+          tFluid: { value: null }
         },
         depthTest: false,
         depthWrite: false
@@ -267,10 +268,8 @@ class ProgramManager {
     })
 
     this.pass = post.addPass({
-      fragment: SHADERS.fragment,
+      fragment: SHADERS.postFragment,
       uniforms: {
-        tFluid: { value: null },
-        uTime: { value: 0 },
         tMap: { value: null },
         uWhiter: { value: 0 }
       }

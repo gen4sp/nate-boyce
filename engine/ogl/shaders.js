@@ -19,7 +19,7 @@ uniform float uWhiter;
 
 void main(void) {
   // gl_FragColor = texture2D(uSampler, vUv);
-  gl_FragColor = mix( texture2D(tMap, vUv), vec4(1,1,1, 1), smoothstep(0.0, 0.7, uWhiter) ) ;
+  gl_FragColor = mix( texture2D(tMap, vUv), vec4(1,1,1, 1), smoothstep(0.8, 1.0, uWhiter) ) ;
 }
 `
 const displacement = /* glsl */ `

@@ -44,8 +44,8 @@ function init(drawStartCallback, drawStopCallback) {
   const splats = []
   function getSplats() {
     // splats = []
-    const strengh = 1000
-    for (let i = 0; i < 5; i++) {
+    const strengh = 500
+    for (let i = 0; i < 15; i++) {
       splats.push({
         // Get mouse value in 0 to 1 range, with y flipped
         x: Math.random(),
@@ -85,8 +85,10 @@ function init(drawStartCallback, drawStopCallback) {
     })
     programManager.density.swap()
   }
-
+  // setTimeout(() => {
   requestAnimationFrame(update)
+  // }, 500)
+
   function update(t) {
     drawStartCallback()
     requestAnimationFrame(update)
@@ -212,6 +214,9 @@ function init(drawStartCallback, drawStopCallback) {
     programManager.density.swap()
 
     //  - - - - - - - - - My attept
+    programManager.displacementProgram.program.uniforms.tFluid.value =
+      programManager.density.read.texture
+
     gl.renderer.render({
       scene: programManager.displacementProgram,
       target: programManager.targetFinalBuffer.write,
@@ -219,7 +224,12 @@ function init(drawStartCallback, drawStopCallback) {
       update: false
     })
     programManager.targetFinalBuffer.swap()
+    programManager.displacementProgram.program.uniforms.tMap.value =
+      programManager.targetFinalBuffer.read.texture
+
     programManager.finalRenderProgram.uniforms.uSampler.value =
+      programManager.targetFinalBuffer.read.texture
+    programManager.pass.uniforms.tMap =
       programManager.targetFinalBuffer.read.texture
     // - - -- -
     // Set clear back to default
@@ -228,32 +238,17 @@ function init(drawStartCallback, drawStopCallback) {
 
     // Update post pass uniform with the simulation output
 
-    programManager.pass.uniforms.tFluid.value =
-      programManager.density.read.texture
-
     const flashTriger = (t % 3000) / 3000
     if (flashTriger < 0.01) {
-      programManager.finalRenderProgram.uniforms.uSampler.value = baseTexture
+      programManager.displacementProgram.program.uniforms.tMap.value =
+        baseTexture
       getSplats()
     }
-    // pass.uniforms.uTime.value = 1 - flashTriger
 
     programManager.pass.uniforms.uWhiter.value = 1 - flashTriger
 
     // Replace Renderer.render with post.render. Use the same arguments.
     post.render({ scene: programManager.scene, camera })
-    post.render({
-      scene: programManager.scene,
-      camera,
-      target: programManager.targetFinalBuffer.write,
-      sort: false,
-      update: false
-    })
-    programManager.targetFinalBuffer.swap()
-    if (t > 2500) {
-      programManager.finalRenderProgram.uniforms.uSampler.value =
-        programManager.targetFinalBuffer.read.texture
-    }
 
     drawStopCallback()
   }
