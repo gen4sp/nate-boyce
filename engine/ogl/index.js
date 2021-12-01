@@ -1,11 +1,11 @@
 import { Renderer, Camera, TextureLoader, Post, Vec2 } from 'ogl-nuxt'
 import ProgramManager from './programs'
 import GUI from './gui'
-const iterations = 4
-const densityDissipation = 0.99
-const velocityDissipation = 0.9
-const pressureDissipation = 0.99
-
+const iterations = 3
+const densityDissipation = 0.97
+const velocityDissipation = 0.98
+const pressureDissipation = 0.8
+const splatsQty = 6
 // const radius = 1.8
 const simRes = 128
 const dyeRes = 512
@@ -35,7 +35,6 @@ function init(drawStartCallback, drawStopCallback) {
   camera.lookAt([0, 0, 0])
 
   function resize() {
-    console.log('> ', window.innerWidth, window.innerHeight)
     renderer.setSize(window.innerWidth, window.innerHeight)
     camera.perspective({ aspect: gl.canvas.width / gl.canvas.height })
     post.resize()
@@ -46,8 +45,8 @@ function init(drawStartCallback, drawStopCallback) {
   const splats = []
   function getSplats() {
     // splats = []
-    const strengh = 500
-    for (let i = 0; i < 15; i++) {
+    const strengh = 100
+    for (let i = 0; i < splatsQty; i++) {
       splats.push({
         // Get mouse value in 0 to 1 range, with y flipped
         x: Math.random(),
@@ -79,7 +78,7 @@ function init(drawStartCallback, drawStopCallback) {
       label: 'densityDissipation',
       min: 0,
       max: 2,
-      defaultValue: 0.99,
+      defaultValue: densityDissipation,
       onChange: (v) => {
         programManager.advectionProgram.program.uniforms.dissipation.value = v
       }
@@ -88,16 +87,16 @@ function init(drawStartCallback, drawStopCallback) {
       label: 'velocityDissipation',
       min: 0,
       max: 2,
-      defaultValue: 0.9,
+      defaultValue: velocityDissipation,
       onChange: (v) => {
-        programManager.advectionProgram.program.uniforms.uVelocity.value = v
+        programManager.advectionProgram.program.uniforms.dissipation.value = v
       }
     })
     GUI.add({
       label: 'pressureDissipation',
       min: 0,
       max: 2,
-      defaultValue: 0.99,
+      defaultValue: pressureDissipation,
       onChange: (v) => {
         programManager.clearProgram.program.uniforms.value.value = v
       }
@@ -131,7 +130,7 @@ function init(drawStartCallback, drawStopCallback) {
       gl.renderer.width / gl.renderer.height
     programManager.splatProgram.program.uniforms.point.value.set(x, y)
     programManager.splatProgram.program.uniforms.color.value.set(dx, dy, 1.0)
-    // programManager.splatProgram.program.uniforms.radius.value = radius / 100.0
+    // programManager.splatProgram.program.uniforms.radius.value = 1.5 / 100.0
 
     gl.renderer.render({
       scene: programManager.splatProgram,
@@ -167,6 +166,7 @@ function init(drawStartCallback, drawStopCallback) {
     // Render all of the inputs since last frame
     for (let i = splats.length - 1; i >= 0; i--) {
       splat(splats.splice(i, 1)[0])
+      // splat(splats[i])
     }
 
     programManager.curlProgram.program.uniforms.uVelocity.value =

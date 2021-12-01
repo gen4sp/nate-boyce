@@ -9,7 +9,7 @@ import {
 } from 'ogl-nuxt'
 import SHADERS from './shaders'
 import GlHelpers from './glHelpers'
-const curlStrength = 50
+const curlStrength = 20
 // Resolution of simulation
 
 class ProgramManager {
