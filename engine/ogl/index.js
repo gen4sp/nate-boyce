@@ -6,7 +6,7 @@ const densityDissipation = 0.99
 const velocityDissipation = 0.9
 const pressureDissipation = 0.99
 
-const radius = 1.8
+// const radius = 1.8
 const simRes = 128
 const dyeRes = 512
 
@@ -57,6 +57,55 @@ function init(drawStartCallback, drawStopCallback) {
     }
   }
 
+  function initGUI() {
+    // GUI.add({
+    //   label: 'whiterBright',
+    //   min: 0,
+    //   max: 1,
+    //   defaultValue: 1,
+    //   onChange: (v) => {
+    //     programManager.pass.uniforms.uBright.value = v
+    //   }
+    // })
+    GUI.add({
+      label: 'densityDissipation',
+      min: 0,
+      max: 2,
+      defaultValue: 0.99,
+      onChange: (v) => {
+        programManager.advectionProgram.program.uniforms.dissipation.value = v
+      }
+    })
+    GUI.add({
+      label: 'velocityDissipation',
+      min: 0,
+      max: 2,
+      defaultValue: 0.9,
+      onChange: (v) => {
+        programManager.advectionProgram.program.uniforms.uVelocity.value = v
+      }
+    })
+    GUI.add({
+      label: 'pressureDissipation',
+      min: 0,
+      max: 2,
+      defaultValue: 0.99,
+      onChange: (v) => {
+        programManager.clearProgram.program.uniforms.value.value = v
+      }
+    })
+    GUI.add({
+      label: 'radius',
+      min: 0,
+      max: 4,
+      defaultValue: 1.8,
+      onChange: (v) => {
+        // programManager.pass.uniforms.uBright.value = v
+        programManager.splatProgram.program.uniforms.radius.value = v / 100.0
+      }
+    })
+  }
+
   // Function to draw number of interactions onto input render target
   function splat({ x, y, dx, dy }) {
     programManager.splatProgram.program.uniforms.uTarget.value =
@@ -65,7 +114,7 @@ function init(drawStartCallback, drawStopCallback) {
       gl.renderer.width / gl.renderer.height
     programManager.splatProgram.program.uniforms.point.value.set(x, y)
     programManager.splatProgram.program.uniforms.color.value.set(dx, dy, 1.0)
-    programManager.splatProgram.program.uniforms.radius.value = radius / 100.0
+    // programManager.splatProgram.program.uniforms.radius.value = radius / 100.0
 
     gl.renderer.render({
       scene: programManager.splatProgram,
@@ -87,16 +136,7 @@ function init(drawStartCallback, drawStopCallback) {
     programManager.density.swap()
   }
 
-  GUI.add({
-    label: 'whiterBright',
-    min: 0,
-    max: 1,
-    defaultValue: 1,
-    onChange: (v) => {
-      programManager.pass.uniforms.uBright.value = v
-    }
-  })
-
+  initGUI()
   requestAnimationFrame(update)
 
   function update(t) {

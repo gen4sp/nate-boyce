@@ -23,7 +23,8 @@
     "ogl-nuxt": "^0.0.2",
     "pixi.js": "^6.2.0",
     "randomcolor": "^0.6.2",
-    "stats.js": "^0.17.0"
+    "stats.js": "^0.17.0",
+    "three": "^0.122.0"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.14.7",
