@@ -1,16 +1,19 @@
 import { Renderer, Camera, TextureLoader, Post, Vec2 } from 'ogl-nuxt'
+import _ from 'lodash'
 import ProgramManager from './programs'
 import GUI from './gui'
 const iterations = 3
 const densityDissipation = 0.97
 const velocityDissipation = 0.98
 const pressureDissipation = 0.8
-const splatsQty = 6
+const splatsQty = 12
 let splatPower = 1
-const debug = true
+const debug = false
 // const radius = 1.8
 const simRes = 128
 const dyeRes = 512
+const flashLength = 3000
+let nextAddMapTrigger = 0.7
 
 const texelSize = { value: new Vec2(1 / simRes) }
 function init(drawStartCallback, drawStopCallback) {
@@ -18,6 +21,10 @@ function init(drawStartCallback, drawStopCallback) {
   const gl = renderer.gl
   const post = new Post(gl)
   const baseTexture = TextureLoader.load(gl, { src: 'images/cryo.png' })
+  const additionalTextures = [
+    TextureLoader.load(gl, { src: 'images/princess.png' }),
+    TextureLoader.load(gl, { src: 'images/room.png' })
+  ]
   const programManager = new ProgramManager({
     gl,
     renderer,
@@ -287,10 +294,25 @@ function init(drawStartCallback, drawStopCallback) {
     })
     programManager.density.swap()
 
-    //  - - - - - - - - - My attept
+    //  - - - - - - - - - Final render
     programManager.displacementProgram.program.uniforms.tFluid.value =
       programManager.density.read.texture
 
+    // -- add
+    const flashTriger = (t % flashLength) / flashLength
+    programManager.finalRenderProgram.uniforms.uAddMap.value =
+      programManager.targetFinalBuffer.read.texture
+    if (!nextAddMapTrigger || nextAddMapTrigger > flashTriger) {
+      nextAddMapTrigger = Math.random() * 0.9
+      const chanceToShow = Math.random() > 0.3
+      console.log('>chanceToShow', chanceToShow)
+      if (chanceToShow) {
+        const texture = _.sample(additionalTextures)
+        programManager.finalRenderProgram.uniforms.uAddMap.value = texture
+        console.log('T ', texture)
+      }
+    }
+    // ----
     gl.renderer.render({
       scene: programManager.displacementProgram,
       target: programManager.targetFinalBuffer.write,
@@ -310,9 +332,8 @@ function init(drawStartCallback, drawStopCallback) {
 
     // Update post pass uniform with the simulation output
 
-    const flashTriger = (t % 3000) / 3000
     splatPower = Math.sin(flashTriger * Math.PI)
-    console.log(splatPower)
+
     if (flashTriger < 0.01) {
       programManager.displacementProgram.program.uniforms.tMap.value =
         baseTexture

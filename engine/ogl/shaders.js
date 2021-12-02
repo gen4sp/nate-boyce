@@ -4,9 +4,14 @@ precision mediump sampler2D;
 varying highp vec2 vUv;
 
 uniform sampler2D uSampler;
+uniform sampler2D uAddMap;
+
 
 void main(void) {
-  gl_FragColor = texture2D(uSampler, vUv);
+    float mix = 0.5;
+    vec4 colOrig = texture2D(uSampler, vUv);
+    vec4 colAdd = texture2D(uAddMap, vUv);
+  gl_FragColor = (colOrig * mix) + (colAdd * (1.0-mix));
 }
 `
 const postFragment = /* glsl */ `

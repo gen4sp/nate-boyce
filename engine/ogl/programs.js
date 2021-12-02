@@ -262,7 +262,8 @@ class ProgramManager {
       vertex: SHADERS.baseVertex2,
       fragment: SHADERS.tfragment,
       uniforms: {
-        uSampler: { value: baseTexture }
+        uSampler: { value: baseTexture },
+        uAddMap: { value: baseTexture }
       }
     })
     this.mesh = new Mesh(gl, {
