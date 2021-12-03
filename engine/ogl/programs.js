@@ -294,6 +294,7 @@ class ProgramManager {
       uniforms: {
         tMap: { value: null },
         uWhiter: { value: 0 },
+        uDimmer: { value: 0 },
         uBright: { value: 1 }
       }
     })

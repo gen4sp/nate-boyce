@@ -37,11 +37,13 @@ varying highp vec2 vUv;
 
 uniform sampler2D uSampler;
 uniform float uWhiter;
+uniform float uDimmer;
 uniform float uBright;
 
 void main(void) {
   // gl_FragColor = texture2D(uSampler, vUv);
-  gl_FragColor = mix( texture2D(tMap, vUv), vec4(1,1,1, uBright), smoothstep(0.8, 1.0, uWhiter) ) ;
+  vec4 dimmer =  mix( texture2D(tMap, vUv), vec4(0,0,0, 1),  uDimmer ) ;
+  gl_FragColor = mix( dimmer, vec4(1,1,1, 1),  uWhiter ) ;
 }
 `
 const displacement = /* glsl */ `

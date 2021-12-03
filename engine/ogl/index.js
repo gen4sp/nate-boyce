@@ -15,6 +15,7 @@ const dyeRes = 512
 const flashLength = 3000
 let flashCounter = 0
 let addMomentTime = 0.4
+let dimmerTriger = 0
 // let nextAddMapTrigger = 0.7
 // let addFlag = false
 
@@ -320,7 +321,8 @@ function init(drawStartCallback, drawStopCallback) {
     if (flashTriger > addMomentTime && flashCounter < 5) {
       console.log('sssss')
       flashCounter++
-      programManager.mixerProgram.program.uniforms.uMix.value = 0.9
+      programManager.mixerProgram.program.uniforms.uMix.value =
+        0.9 + Math.random() * 0.06
     } else {
       if (flashCounter && flashTriger < 0.5) {
         flashCounter = 0
@@ -368,8 +370,18 @@ function init(drawStartCallback, drawStopCallback) {
       addMomentTime = Math.random() * 0.4 + 0.3
       // addFlag = false
     }
-
-    programManager.pass.uniforms.uWhiter.value = 1 - flashTriger
+    if (!dimmerTriger || dimmerTriger < 0) {
+      if (Math.random() > 0) {
+        // chance to dimm
+        programManager.pass.uniforms.uDimmer.value = Math.random() * 0.8
+      } else {
+        programManager.pass.uniforms.uDimmer.value = 0
+      }
+      dimmerTriger = Math.random() * 100
+    }
+    dimmerTriger--
+    programManager.pass.uniforms.uWhiter.value =
+      0.2 * Math.pow(1 - flashTriger, 4)
     gl.renderer.autoClear = true
     // Replace Renderer.render with post.render. Use the same arguments.
     post.render({ scene: programManager.scene, camera })
