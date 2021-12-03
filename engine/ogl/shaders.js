@@ -8,10 +8,26 @@ uniform sampler2D uAddMap;
 
 
 void main(void) {
-    float mix = 0.5;
+    float mix = 1.0;
     vec4 colOrig = texture2D(uSampler, vUv);
     vec4 colAdd = texture2D(uAddMap, vUv);
   gl_FragColor = (colOrig * mix) + (colAdd * (1.0-mix));
+}
+`
+
+const mixer = /* glsl */ `
+precision mediump float;
+precision mediump sampler2D;
+varying highp vec2 vUv;
+
+uniform sampler2D uOrig;
+uniform sampler2D uAdd;
+uniform float uMix;
+
+void main(void) {
+    vec4 colOrig = texture2D(uOrig, vUv);
+    vec4 colAdd = texture2D(uAdd, vUv);
+    gl_FragColor =  (colOrig * uMix) + (colAdd * (1.0-uMix));
 }
 `
 const postFragment = /* glsl */ `
@@ -305,5 +321,6 @@ export default {
   pressureShader,
   gradientSubtractShader,
   postFragment,
-  displacement
+  displacement,
+  mixer
 }

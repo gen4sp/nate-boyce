@@ -91,6 +91,10 @@ class ProgramManager {
       width: gl.canvas.width,
       height: gl.canvas.height
     })
+    this.mixerBuffer = createDoubleFBO(gl, {
+      width: gl.canvas.width,
+      height: gl.canvas.height
+    })
 
     const triangle = new Geometry(gl, {
       position: { size: 2, data: new Float32Array([-1, -1, 3, -1, -1, 3]) },
@@ -257,6 +261,20 @@ class ProgramManager {
       })
     })
     // ----
+    this.mixerProgram = new Mesh(this.gl, {
+      geometry: triangle,
+      program: new Program(gl, {
+        vertex: SHADERS.baseVertex2,
+        fragment: SHADERS.mixer,
+        uniforms: {
+          uOrig: { value: baseTexture },
+          uAdd: { value: baseTexture },
+          uMix: { value: 1 }
+        },
+        depthTest: false,
+        depthWrite: false
+      })
+    })
 
     this.finalRenderProgram = new Program(gl, {
       vertex: SHADERS.baseVertex2,

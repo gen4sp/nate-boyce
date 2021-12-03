@@ -13,7 +13,10 @@ const debug = false
 const simRes = 128
 const dyeRes = 512
 const flashLength = 3000
-let nextAddMapTrigger = 0.7
+let flashCounter = 0
+let addMomentTime = 0.4
+// let nextAddMapTrigger = 0.7
+// let addFlag = false
 
 const texelSize = { value: new Vec2(1 / simRes) }
 function init(drawStartCallback, drawStopCallback) {
@@ -22,6 +25,7 @@ function init(drawStartCallback, drawStopCallback) {
   const post = new Post(gl)
   const baseTexture = TextureLoader.load(gl, { src: 'images/cryo.png' })
   const additionalTextures = [
+    TextureLoader.load(gl, { src: 'images/cryo.png' }),
     TextureLoader.load(gl, { src: 'images/princess.png' }),
     TextureLoader.load(gl, { src: 'images/room.png' })
   ]
@@ -300,26 +304,39 @@ function init(drawStartCallback, drawStopCallback) {
 
     // -- add
     const flashTriger = (t % flashLength) / flashLength
-    programManager.finalRenderProgram.uniforms.uAddMap.value =
-      programManager.targetFinalBuffer.read.texture
-    if (!nextAddMapTrigger || nextAddMapTrigger > flashTriger) {
-      nextAddMapTrigger = Math.random() * 0.9
-      const chanceToShow = Math.random() > 0.3
-      console.log('>chanceToShow', chanceToShow)
-      if (chanceToShow) {
-        const texture = _.sample(additionalTextures)
-        programManager.finalRenderProgram.uniforms.uAddMap.value = texture
-        console.log('T ', texture)
-      }
-    }
+
     // ----
     gl.renderer.render({
       scene: programManager.displacementProgram,
+      target: programManager.mixerBuffer.write,
+      sort: false,
+      update: false
+    })
+    programManager.mixerBuffer.swap()
+
+    programManager.mixerProgram.program.uniforms.uOrig.value =
+      programManager.mixerBuffer.read.texture
+
+    if (flashTriger > addMomentTime && flashCounter < 5) {
+      console.log('sssss')
+      flashCounter++
+      programManager.mixerProgram.program.uniforms.uMix.value = 0.9
+    } else {
+      if (flashCounter && flashTriger < 0.5) {
+        flashCounter = 0
+        addMomentTime = Math.random() * 0.3 + 0.6
+      }
+      programManager.mixerProgram.program.uniforms.uMix.value = 1.0
+    }
+
+    gl.renderer.render({
+      scene: programManager.mixerProgram,
       target: programManager.targetFinalBuffer.write,
       sort: false,
       update: false
     })
     programManager.targetFinalBuffer.swap()
+
     programManager.displacementProgram.program.uniforms.tMap.value =
       programManager.targetFinalBuffer.read.texture
 
@@ -328,6 +345,13 @@ function init(drawStartCallback, drawStopCallback) {
     programManager.pass.uniforms.tMap =
       programManager.targetFinalBuffer.read.texture
     // - - -- -
+    // gl.renderer.render({
+    //   scene: programManager.mixerProgram,
+    //   target: programManager.targetFinalBuffer.write,
+    //   sort: false,
+    //   update: false
+    // })
+
     // Set clear back to default
 
     // Update post pass uniform with the simulation output
@@ -338,6 +362,11 @@ function init(drawStartCallback, drawStopCallback) {
       programManager.displacementProgram.program.uniforms.tMap.value =
         baseTexture
       getSplats()
+      flashCounter = 0
+      programManager.mixerProgram.program.uniforms.uAdd.value =
+        _.sample(additionalTextures)
+      addMomentTime = Math.random() * 0.4 + 0.3
+      // addFlag = false
     }
 
     programManager.pass.uniforms.uWhiter.value = 1 - flashTriger
