@@ -2,6 +2,8 @@ import { Renderer, Camera, TextureLoader, Post, Vec2 } from 'ogl-nuxt'
 import _ from 'lodash'
 import ProgramManager from './programs'
 import GUI from './gui'
+import viewer3d from './3dRenderer'
+
 const iterations = 3
 const densityDissipation = 0.97
 const velocityDissipation = 0.98
@@ -24,9 +26,11 @@ function init(drawStartCallback, drawStopCallback) {
   const renderer = new Renderer({ dpr: 2 })
   const gl = renderer.gl
   const post = new Post(gl)
-  const baseTexture = TextureLoader.load(gl, { src: 'images/cryo.png' })
+  const get3dFrame = viewer3d.init(renderer)
+  let baseTexture = get3dFrame() // TextureLoader.load(gl, { src: 'images/cryo.png' })
   const additionalTextures = [
-    TextureLoader.load(gl, { src: 'images/cryo.png' }),
+    baseTexture,
+    // TextureLoader.load(gl, { src: 'images/cryo.png' }),
     TextureLoader.load(gl, { src: 'images/princess.png' }),
     TextureLoader.load(gl, { src: 'images/room.png' })
   ]
@@ -42,7 +46,7 @@ function init(drawStartCallback, drawStopCallback) {
   })
 
   document.body.appendChild(gl.canvas)
-  gl.clearColor(1, 1, 1, 1)
+  gl.clearColor(0, 0, 0, 1)
 
   const camera = new Camera(gl, { fov: 35 })
   camera.position.set(0, 1, 5)
@@ -319,7 +323,6 @@ function init(drawStartCallback, drawStopCallback) {
       programManager.mixerBuffer.read.texture
 
     if (flashTriger > addMomentTime && flashCounter < 5) {
-      console.log('sssss')
       flashCounter++
       programManager.mixerProgram.program.uniforms.uMix.value =
         0.9 + Math.random() * 0.06
@@ -385,7 +388,15 @@ function init(drawStartCallback, drawStopCallback) {
     gl.renderer.autoClear = true
     // Replace Renderer.render with post.render. Use the same arguments.
     post.render({ scene: programManager.scene, camera })
-
+    // console.log(viewer3d.image)
+    // baseTexture = TextureLoader.load(gl, { src: viewer3d.image })
+    baseTexture = get3dFrame()
+    // baseTexture = new Texture(gl, {
+    //   generateMipmaps: false,
+    //   width: window.innerWidth,
+    //   height: window.innerHeight,
+    //   image: viewer3d.image
+    // })
     drawStopCallback()
   }
 }
